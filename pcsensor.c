@@ -456,7 +456,7 @@ int main( int argc, char **argv) {
            } 
            else if (json==1)
            {
-             printf("{\"temperature\":{\"c\":\"\%.2f\",\"f\":\"%.2f\"},\"timestamp\":\"%04d/%02d/%02d %02d:%02d:%02d\"}\n",tempc, tempf,
+             printf("{\"temperature\":{\"c\":\"%.2f\",\"f\":\"%.2f\"},\"timestamp\":\"%04d/%02d/%02d %02d:%02d:%02d\"}\n",tempc, tempf,
                           local->tm_year +1900,
                           local->tm_mon + 1,
                           local->tm_mday,
