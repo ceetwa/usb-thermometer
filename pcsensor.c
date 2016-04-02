@@ -66,6 +66,7 @@ static int formato=0;
 static int mrtg=0;
 static int json=0;
 static int proto=0;
+static int csv=0;
 /* Even within the same VENDOR_ID / PRODUCT_ID, there are hardware variations
  * which we can detect by reading the USB product ID string. This determines
  * where the temperature offset is stored in the USB read buffer. */
@@ -348,7 +349,7 @@ int main( int argc, char **argv) {
      struct tm *local;
      time_t t;
 
-     while ((c = getopt (argc, argv, "mfcvhljp::")) != -1)
+     while ((c = getopt (argc, argv, "mfcvhljps::")) != -1)
      switch (c)
        {
        case 'v':
@@ -368,6 +369,9 @@ int main( int argc, char **argv) {
          break;
        case 'p':
          proto=1;
+         break;
+       case 's':
+         csv=1;
          break;
        case 'l':
          if (optarg!=NULL){
@@ -463,6 +467,10 @@ int main( int argc, char **argv) {
                           local->tm_hour,
                           local->tm_min,
                           local->tm_sec);
+           }
+           else if (csv==1)
+           {
+              printf("%d,%.2f\n",mktime(local),tempc);
            }
            else {
               printf("%04d/%02d/%02d %02d:%02d:%02d ", 
