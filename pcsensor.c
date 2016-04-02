@@ -64,7 +64,8 @@ static int debug=0;
 static int seconds=5;
 static int formato=0;
 static int mrtg=0;
-
+static int json=0;
+static int proto=0;
 /* Even within the same VENDOR_ID / PRODUCT_ID, there are hardware variations
  * which we can detect by reading the USB product ID string. This determines
  * where the temperature offset is stored in the USB read buffer. */
@@ -342,12 +343,12 @@ void ex_program(int sig) {
 int main( int argc, char **argv) {
  
      usb_dev_handle *lvr_winusb = NULL;
-     float tempc;
+     float tempc, tempf;
      int c;
      struct tm *local;
      time_t t;
 
-     while ((c = getopt (argc, argv, "mfcvhl::")) != -1)
+     while ((c = getopt (argc, argv, "mfcvhljp::")) != -1)
      switch (c)
        {
        case 'v':
@@ -361,6 +362,12 @@ int main( int argc, char **argv) {
          break;
        case 'm':
          mrtg=1;
+         break;
+       case 'j':
+         json=1;
+         break;
+       case 'p':
+         proto=1;
          break;
        case 'l':
          if (optarg!=NULL){
@@ -386,7 +393,9 @@ int main( int argc, char **argv) {
 	 printf("          -c output only in Celsius\n");
 	 printf("          -f output only in Fahrenheit\n");
 	 printf("          -m output for mrtg integration\n");
-  
+         printf("          -j output in json\n");
+         printf("          -p ouput in protobuf\n"); 
+
 	 exit(EXIT_FAILURE);
        default:
          if (isprint (optopt))
@@ -426,14 +435,14 @@ int main( int argc, char **argv) {
      do {
            control_transfer(lvr_winusb, uTemperatura );
            interrupt_read_temperatura(lvr_winusb, &tempc);
-
+           tempf = (9.0 / 5.0 * tempc + 32.0);
            t = time(NULL);
            local = localtime(&t);
 
            if (mrtg) {
               if (formato==2) {
-                  printf("%.2f\n", (9.0 / 5.0 * tempc + 32.0));
-                  printf("%.2f\n", (9.0 / 5.0 * tempc + 32.0));
+                  printf("%.2f\n", tempf);
+                  printf("%.2f\n", tempf);
               } else {
                   printf("%.2f\n", tempc);
                   printf("%.2f\n", tempc);
@@ -444,7 +453,18 @@ int main( int argc, char **argv) {
                           local->tm_min);
 
               printf("pcsensor\n");
-           } else {
+           } 
+           else if (json==1)
+           {
+             printf("{\"temperature\":{\"c\":\"\%.2f\",\"f\":\"%.2f\"},\"timestamp\":\"%04d/%02d/%02d %02d:%02d:%02d\"}\n",tempc, tempf,
+                          local->tm_year +1900,
+                          local->tm_mon + 1,
+                          local->tm_mday,
+                          local->tm_hour,
+                          local->tm_min,
+                          local->tm_sec);
+           }
+           else {
               printf("%04d/%02d/%02d %02d:%02d:%02d ", 
                           local->tm_year +1900, 
                           local->tm_mon + 1, 
